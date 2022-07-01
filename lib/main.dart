@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo_list/resources/savedata.dart';
 
 void main() => runApp(MyApp());
 
@@ -23,11 +24,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<String> tasks = [];
-  final List<bool> status = [];
-  final List<DateTime> selectedDate = [];
+  StoreData sD = StoreData();
+
+  List<String> tasks = [];
+  List<bool> status = [];
+  List<DateTime> selectedDate = [];
   String buttonText = 'Set Remaider';
   TextEditingController taskData = TextEditingController();
+
+  @override
+  void initState() {
+    setState(() {
+      // sD.getAllData();
+      // sD.saveAllData(tasks, status, selectedDate);
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    setState(() {});
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +133,7 @@ class _HomePageState extends State<HomePage> {
                       if (selectedDate.length < tasks.length) {
                         setState(() {
                           selectedDate.insert(0, DateTime(0));
+                          sD.saveAllData(tasks, status, selectedDate);
                         });
                       }
                       Navigator.pop(context, 'Done');
@@ -145,20 +164,23 @@ class _HomePageState extends State<HomePage> {
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       subtitle: timeStamp(index),
-      trailing: CircleAvatar(
-        backgroundColor: Colors.red,
-        child: IconButton(
-          icon: const Icon(
-            Icons.delete_outline,
-            color: Colors.white,
+      trailing: Padding(
+        padding: const EdgeInsets.only(right: 8.0),
+        child: CircleAvatar(
+          backgroundColor: Colors.red,
+          child: IconButton(
+            icon: const Icon(
+              Icons.delete_outline,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              setState(() {
+                tasks.removeAt(index);
+                status.removeAt(index);
+                selectedDate.removeAt(index);
+              });
+            },
           ),
-          onPressed: () {
-            setState(() {
-              tasks.removeAt(index);
-              status.removeAt(index);
-              selectedDate.removeAt(index);
-            });
-          },
         ),
       ),
     );
