@@ -24,27 +24,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  StoreData sD = StoreData();
+  // StoreData sD = StoreData();
 
-  List<String> tasks = [];
-  List<bool> status = [];
-  List<DateTime> selectedDate = [];
+  List tasks = [];
+  List status = [];
+  List selectedDate = [];
   String buttonText = 'Set Remaider';
   TextEditingController taskData = TextEditingController();
 
   @override
   void initState() {
-    setState(() {
-      // sD.getAllData();
-      // sD.saveAllData(tasks, status, selectedDate);
-    });
+    gettingData();
     super.initState();
   }
 
-  @override
-  void dispose() {
+  gettingData() async {
+    status = await StoreData().getAllData('status');
+    tasks = await StoreData().getAllData('tasky');
+    selectedDate = await StoreData().getAllData('remainder');
     setState(() {});
-    super.dispose();
   }
 
   @override
@@ -62,10 +60,11 @@ class _HomePageState extends State<HomePage> {
       );
       if (picked != null && picked != selectedDate) {
         setState(() {
-          selectedDate.insert(
-              0,
-              DateTime.utc(picked.year, picked.month, picked.day, time!.hour,
-                  time.minute));
+          String date = DateTime.utc(picked.year, picked.month, picked.day,
+                  time!.hour, time.minute)
+              .toString()
+              .substring(5, 16);
+          selectedDate.insert(0, date);
         });
       }
     }
@@ -74,7 +73,22 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
           backgroundColor: Colors.grey[150],
           appBar: AppBar(
-            title: const Text('Tasky'),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Tasky'),
+                IconButton(
+                    onPressed: () {
+                      setState(() {
+                        tasks.clear();
+                        selectedDate.clear();
+                        status.clear();
+                        StoreData().deleteDataAll();
+                      });
+                    },
+                    icon: const Icon(Icons.delete))
+              ],
+            ),
           ),
           body: tasks.isEmpty
               ? const Center(
@@ -101,9 +115,9 @@ class _HomePageState extends State<HomePage> {
                       tasks.insert(newIndex, item);
                       final bool itemCheck = status.removeAt(oldIndex);
                       status.insert(newIndex, itemCheck);
-                      final DateTime dateCheck =
-                          selectedDate.removeAt(oldIndex);
+                      final String dateCheck = selectedDate.removeAt(oldIndex);
                       selectedDate.insert(newIndex, dateCheck);
+                      StoreData().saveAllData(tasks, status, selectedDate);
                     });
                   },
                 ),
@@ -129,13 +143,13 @@ class _HomePageState extends State<HomePage> {
                       setState(() {
                         tasks.insert(0, taskData.text);
                         status.insert(0, false);
+                        if (selectedDate.length < tasks.length) {
+                          setState(() {
+                            selectedDate.insert(0, "not Given");
+                          });
+                        }
+                        StoreData().saveAllData(tasks, status, selectedDate);
                       });
-                      if (selectedDate.length < tasks.length) {
-                        setState(() {
-                          selectedDate.insert(0, DateTime(0));
-                          sD.saveAllData(tasks, status, selectedDate);
-                        });
-                      }
                       Navigator.pop(context, 'Done');
                     },
                     child: const Text('Done'),
@@ -178,6 +192,7 @@ class _HomePageState extends State<HomePage> {
                 tasks.removeAt(index);
                 status.removeAt(index);
                 selectedDate.removeAt(index);
+                StoreData().saveAllData(tasks, status, selectedDate);
               });
             },
           ),
@@ -190,7 +205,7 @@ class _HomePageState extends State<HomePage> {
     return InkWell(
       onTap: () => setState(() {}),
       child: Visibility(
-        visible: selectedDate[index].hour != 0,
+        visible: !selectedDate[index].toString().contains('not Given'),
         child: Row(
           children: [
             const Icon(
@@ -199,7 +214,7 @@ class _HomePageState extends State<HomePage> {
               size: 14,
             ),
             Text(
-              ("${selectedDate[index].day}/${selectedDate[index].month} ${selectedDate[index].hour}:${selectedDate[index].minute}"),
+              (selectedDate[index]),
               style: const TextStyle(
                   color: Colors.red, fontSize: 11, fontWeight: FontWeight.bold),
             ),
