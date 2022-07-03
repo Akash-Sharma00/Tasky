@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/resources/savedata.dart';
 
-void main() => runApp(MyApp());
+import 'resources/create_notification.dart';
+
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
@@ -24,8 +28,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // StoreData sD = StoreData();
-
   List tasks = [];
   List status = [];
   List selectedDate = [];
@@ -35,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     gettingData();
+    CreateNotificataion().init();
     super.initState();
   }
 
@@ -62,8 +65,7 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           String date = DateTime.utc(picked.year, picked.month, picked.day,
                   time!.hour, time.minute)
-              .toString()
-              .substring(5, 16);
+              .toString();
           selectedDate.insert(0, date);
         });
       }
@@ -79,12 +81,14 @@ class _HomePageState extends State<HomePage> {
                 const Text('Tasky'),
                 IconButton(
                     onPressed: () {
-                      setState(() {
-                        tasks.clear();
-                        selectedDate.clear();
-                        status.clear();
-                        StoreData().deleteDataAll();
-                      });
+                      setState(
+                        () {
+                          tasks.clear();
+                          selectedDate.clear();
+                          status.clear();
+                          StoreData().deleteDataAll();
+                        },
+                      );
                     },
                     icon: const Icon(Icons.delete))
               ],
@@ -98,11 +102,11 @@ class _HomePageState extends State<HomePage> {
                   children: <Widget>[
                     for (int index = 0; index < tasks.length; index += 1)
                       Container(
+                        key: Key('$index'),
                         alignment: Alignment.center,
                         height: 70,
                         margin: const EdgeInsets.only(
                             bottom: 5, left: 10, right: 10),
-                        key: Key("$index "),
                         child: taskTile(index),
                       ),
                   ],
@@ -171,6 +175,18 @@ class _HomePageState extends State<HomePage> {
           onChanged: (bool? v) {
             setState(() {
               status[index] = v!;
+              int oldIndex = index;
+              int newIndex = status.length - 1;
+              if (status[index] == true) {
+                // newIndex -= 1;
+                final String item = tasks.removeAt(oldIndex);
+                tasks.insert(newIndex, item);
+                final bool itemCheck = status.removeAt(oldIndex);
+                status.insert(newIndex, itemCheck);
+                final String dateCheck = selectedDate.removeAt(oldIndex);
+                selectedDate.insert(newIndex, dateCheck);
+                StoreData().saveAllData(tasks, status, selectedDate);
+              }
             });
           }),
       title: Text(
@@ -178,46 +194,68 @@ class _HomePageState extends State<HomePage> {
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       subtitle: timeStamp(index),
-      trailing: Padding(
-        padding: const EdgeInsets.only(right: 8.0),
-        child: CircleAvatar(
-          backgroundColor: Colors.red,
-          child: IconButton(
-            icon: const Icon(
-              Icons.delete_outline,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              setState(() {
-                tasks.removeAt(index);
-                status.removeAt(index);
-                selectedDate.removeAt(index);
-                StoreData().saveAllData(tasks, status, selectedDate);
-              });
-            },
+      trailing: delButton(index),
+    );
+  }
+
+  Padding delButton(int index) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: CircleAvatar(
+        backgroundColor: Colors.red,
+        child: IconButton(
+          icon: const Icon(
+            Icons.delete_outline,
+            color: Colors.white,
           ),
+          onPressed: () {
+            setState(() {
+              tasks.removeAt(index);
+              status.removeAt(index);
+              selectedDate.removeAt(index);
+              StoreData().saveAllData(tasks, status, selectedDate);
+            });
+          },
         ),
       ),
     );
   }
 
   Widget timeStamp(int index) {
+    // int year = int.parse(selectedDate[index].substring(0, 4));
+    // int month = int.parse(selectedDate[index].substring(5, 7));
+    // int date = int.parse(selectedDate[index].substring(8, 10));
+    // int hour = int.parse(selectedDate[index].substring(11, 13));
+    // int min = int.parse(selectedDate[index].substring(14, 16));
+    // List<DateTime> d = [
+    //   DateTime.utc(year, month, date, hour, min),
+    // ];
     return InkWell(
-      onTap: () => setState(() {}),
+      onTap: () => {
+        setState(() {
+          // ScaffoldMessenger.of(context)
+          // .showSnackBar(SnackBar(content: Text(d[0].toString())));
+        }),
+      },
       child: Visibility(
         visible: !selectedDate[index].toString().contains('not Given'),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
               Icons.alarm,
               color: Colors.red,
               size: 14,
             ),
-            Text(
-              (selectedDate[index]),
-              style: const TextStyle(
-                  color: Colors.red, fontSize: 11, fontWeight: FontWeight.bold),
-            ),
+            selectedDate[index].contains('not Given')
+                ? const Text("")
+                : Text(
+                    (selectedDate[index].substring(5, 16)),
+                    style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold),
+                  ),
           ],
         ),
       ),
