@@ -33,11 +33,13 @@ class _HomePageState extends State<HomePage> {
   List selectedDate = [];
   String buttonText = 'Set Remaider';
   TextEditingController taskData = TextEditingController();
+  late CreateNotificataion c;
 
   @override
   void initState() {
     gettingData();
-    CreateNotificataion().init();
+    c = CreateNotificataion();
+    c.init();
     super.initState();
   }
 
@@ -81,6 +83,7 @@ class _HomePageState extends State<HomePage> {
                 const Text('Tasky'),
                 IconButton(
                     onPressed: () {
+                      // c.showShechduleNotification();
                       setState(
                         () {
                           tasks.clear();
@@ -153,6 +156,8 @@ class _HomePageState extends State<HomePage> {
                           });
                         }
                         StoreData().saveAllData(tasks, status, selectedDate);
+                        notificationTime(
+                            selectedDate[0], tasks[0], "Lagging Behind", 1);
                       });
                       Navigator.pop(context, 'Done');
                     },
@@ -222,17 +227,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget timeStamp(int index) {
-    // int year = int.parse(selectedDate[index].substring(0, 4));
-    // int month = int.parse(selectedDate[index].substring(5, 7));
-    // int date = int.parse(selectedDate[index].substring(8, 10));
-    // int hour = int.parse(selectedDate[index].substring(11, 13));
-    // int min = int.parse(selectedDate[index].substring(14, 16));
-    // List<DateTime> d = [
-    //   DateTime.utc(year, month, date, hour, min),
-    // ];
     return InkWell(
       onTap: () => {
         setState(() {
+          // notificationTime(selectedDate[index]);
           // ScaffoldMessenger.of(context)
           // .showSnackBar(SnackBar(content: Text(d[0].toString())));
         }),
@@ -260,5 +258,18 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void notificationTime(
+      String selectedDate, String title, String body, int id) {
+    int year = int.parse(selectedDate.substring(0, 4));
+    int month = int.parse(selectedDate.substring(5, 7));
+    int date = int.parse(selectedDate.substring(8, 10));
+    int hour = int.parse(selectedDate.substring(11, 13));
+    int min = int.parse(selectedDate.substring(14, 16));
+    List<DateTime> d = [
+      DateTime.utc(year, month, date, hour, min),
+    ];
+    c.showShechduleNotification(year, month, date, hour, min, title, body, id);
   }
 }
