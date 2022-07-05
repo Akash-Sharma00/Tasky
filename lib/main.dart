@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/resources/savedata.dart';
 import 'resources/create_notification.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() => runApp(const MyApp());
 
@@ -27,9 +28,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List tasks = [];
-  List status = [];
-  List selectedDate = [];
+  List tasks = ['Create Your First Task'];
+  List status = [false];
+  List selectedDate = ["not Given"];
   String buttonText = 'Set Remaider';
   TextEditingController taskData = TextEditingController();
   late CreateNotificataion c;
@@ -39,6 +40,7 @@ class _HomePageState extends State<HomePage> {
     gettingData();
     c = CreateNotificataion();
     c.init();
+    tz.initializeTimeZones();
     super.initState();
   }
 
@@ -109,7 +111,9 @@ class _HomePageState extends State<HomePage> {
                         height: 70,
                         margin: const EdgeInsets.only(
                             bottom: 5, left: 10, right: 10),
-                        child: taskTile(index),
+                        child: status[index]
+                            ? completedTaskTile(index)
+                            : taskTile(index),
                       ),
                   ],
                   onReorder: (int oldIndex, int newIndex) {
@@ -175,39 +179,21 @@ class _HomePageState extends State<HomePage> {
     return ListTile(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       tileColor: Colors.white,
-      leading: Checkbox(
-          value: status[index],
-          onChanged: (bool? v) {
-            setState(() {
-              status[index] = v!;
-              int oldIndex = index;
-              int newIndex = status.length - 1;
-              if (status[index] == true) {
-                // newIndex -= 1;
-                final String item = tasks.removeAt(oldIndex);
-                tasks.insert(newIndex, item);
-                final bool itemCheck = status.removeAt(oldIndex);
-                status.insert(newIndex, itemCheck);
-                final String dateCheck = selectedDate.removeAt(oldIndex);
-                selectedDate.insert(newIndex, dateCheck);
-                StoreData().saveAllData(tasks, status, selectedDate);
-              }
-            });
-          }),
+      leading: checkTaskStatus(index),
       title: Text(
         tasks[index],
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       subtitle: timeStamp(index),
-      trailing: delButton(index),
+      trailing: delButton(index, Colors.red),
     );
   }
 
-  Padding delButton(int index) {
+  Padding delButton(int index, Color c) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: CircleAvatar(
-        backgroundColor: Colors.red,
+        backgroundColor: c,
         child: IconButton(
           icon: const Icon(
             Icons.delete_outline,
@@ -269,5 +255,52 @@ class _HomePageState extends State<HomePage> {
     int min = int.parse(selectedDate.substring(14, 16));
     DateTime d = DateTime.utc(year, month, date, hour, min);
     c.showShechduleNotification(d, title, body, id);
+  }
+
+  completedTaskTile(int index) {
+    return ListTile(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      tileColor: Colors.white,
+      leading: checkTaskStatus(index),
+      title: Text(
+        tasks[index],
+        style: const TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey),
+      ),
+      subtitle: const Text(
+        "🎉Completed🎉",
+        style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+      ),
+      trailing: delButton(index, Colors.grey),
+    );
+  }
+
+  Checkbox checkTaskStatus(int index) {
+    return Checkbox(
+        value: status[index],
+        onChanged: (bool? v) {
+          setState(() {
+            status[index] = v!;
+            int oldIndex = index;
+            int newIndex = status.length - 1;
+            if (status[index] == true) {
+              final String item = tasks.removeAt(oldIndex);
+              tasks.insert(newIndex, item);
+              final bool itemCheck = status.removeAt(oldIndex);
+              status.insert(newIndex, itemCheck);
+              final String dateCheck = selectedDate.removeAt(oldIndex);
+              selectedDate.insert(newIndex, dateCheck);
+              StoreData().saveAllData(tasks, status, selectedDate);
+            } else {
+              final String item = tasks.removeAt(oldIndex);
+              tasks.insert(0, item);
+              final bool itemCheck = status.removeAt(oldIndex);
+              status.insert(0, itemCheck);
+              final String dateCheck = selectedDate.removeAt(oldIndex);
+              selectedDate.insert(0, dateCheck);
+              StoreData().saveAllData(tasks, status, selectedDate);
+            }
+          });
+        });
   }
 }
