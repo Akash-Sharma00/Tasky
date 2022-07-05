@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/resources/savedata.dart';
-
 import 'resources/create_notification.dart';
 
 void main() => runApp(const MyApp());
@@ -154,10 +153,11 @@ class _HomePageState extends State<HomePage> {
                           setState(() {
                             selectedDate.insert(0, "not Given");
                           });
+                        } else {
+                          notificationTime(selectedDate[0], tasks[0],
+                              "Your Pending Tasks", selectedDate.length);
                         }
                         StoreData().saveAllData(tasks, status, selectedDate);
-                        notificationTime(
-                            selectedDate[0], tasks[0], "Lagging Behind", 1);
                       });
                       Navigator.pop(context, 'Done');
                     },
@@ -267,9 +267,7 @@ class _HomePageState extends State<HomePage> {
     int date = int.parse(selectedDate.substring(8, 10));
     int hour = int.parse(selectedDate.substring(11, 13));
     int min = int.parse(selectedDate.substring(14, 16));
-    List<DateTime> d = [
-      DateTime.utc(year, month, date, hour, min),
-    ];
-    c.showShechduleNotification(year, month, date, hour, min, title, body, id);
+    DateTime d = DateTime.utc(year, month, date, hour, min);
+    c.showShechduleNotification(d, title, body, id);
   }
 }
