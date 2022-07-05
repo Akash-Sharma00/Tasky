@@ -1,6 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class CreateNotificataion {
   FlutterLocalNotificationsPlugin plugin = FlutterLocalNotificationsPlugin();
@@ -26,24 +26,23 @@ class CreateNotificataion {
     int id,
   ) async {
     const sound = 'notification_sound.mp3';
-    TZDateTime dt = TZDateTime.now(local).add(const Duration(minutes: 2));
+    // TZDateTime dt = TZDateTime.now(local).add(const Duration(minutes: 2));
 
     await plugin.zonedSchedule(
         id,
         title,
         body,
-        dt,
+        await tz.TZDateTime.from(nTime, tz.local),
         // _convertTime(Time(nTime.hour, nTime.minute), nTime),
-        NotificationDetails(
+        await NotificationDetails(
           android: AndroidNotificationDetails(
-              'your channel $id ', 'your channel name',
-              channelDescription: 'your channel description',
-              autoCancel: true,
-              importance: Importance.max,
-              priority: Priority.high,
-              sound:
-                  RawResourceAndroidNotificationSound(sound.split('.').first),
-              enableLights: true),
+            'your channel $id ',
+            'your channel name',
+            channelDescription: 'your channel description',
+            importance: Importance.max,
+            priority: Priority.high,
+            sound: RawResourceAndroidNotificationSound(sound.split('.').first),
+          ),
           iOS: const IOSNotificationDetails(sound: sound),
         ),
         uiLocalNotificationDateInterpretation:
@@ -53,11 +52,11 @@ class CreateNotificataion {
     // _convertTime(year, month, day, hour, minutes);
   }
 
-  TZDateTime _convertTime(Time time, DateTime t) {
-    final TZDateTime now =
-        TZDateTime.now(local).add(const Duration(seconds: 10));
-    TZDateTime scheduleDate = TZDateTime(
-      local,
+  tz.TZDateTime _convertTime(Time time, DateTime t) {
+    final tz.TZDateTime now =
+        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
+    tz.TZDateTime scheduleDate = tz.TZDateTime(
+      tz.local,
       t.year,
       t.month,
       t.day,

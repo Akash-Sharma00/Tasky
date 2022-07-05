@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/resources/savedata.dart';
 import 'resources/create_notification.dart';
-import 'package:timezone/data/latest.dart' as tz;
 
 void main() => runApp(const MyApp());
 
@@ -40,7 +39,6 @@ class _HomePageState extends State<HomePage> {
     gettingData();
     c = CreateNotificataion();
     c.init();
-    tz.initializeTimeZones();
     super.initState();
   }
 
