@@ -26,13 +26,14 @@ class CreateNotificataion {
     int id,
   ) async {
     const sound = 'notification_sound.mp3';
-    // TZDateTime dt = TZDateTime.now(local).add(const Duration(minutes: 2));
+    tz.TZDateTime dt = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
 
     await plugin.zonedSchedule(
         id,
         title,
         body,
-        await tz.TZDateTime.from(nTime, tz.local),
+        // await tz.TZDateTime.from(nTime, tz.local),
+        dt,
         // _convertTime(Time(nTime.hour, nTime.minute), nTime),
         await NotificationDetails(
           android: AndroidNotificationDetails(
